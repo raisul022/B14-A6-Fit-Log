@@ -1,7 +1,12 @@
+import Link from "next/link";
+import Navbar from "./components/Navbar";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
-      <section className="mx-auto flex min-h-screen max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
+      <Navbar />
+
+      <section className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
         <div className="max-w-4xl">
           <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
             Workout Library
@@ -23,9 +28,12 @@ export default function Home() {
               Browse Workouts
             </button>
 
-            <button className="rounded-full border border-border px-6 py-3 text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:bg-surface">
+            <Link
+              href="/my-plan"
+              className="rounded-full border border-border px-6 py-3 text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:bg-surface"
+            >
               My Plan
-            </button>
+            </Link>
           </div>
         </div>
       </section>
