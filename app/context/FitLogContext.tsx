@@ -4,9 +4,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 import type { Workout } from "../types/workout";
@@ -41,11 +41,7 @@ const PLAN_STORAGE_KEY = "fitlog-plan";
 const SAVED_STORAGE_KEY = "fitlog-saved";
 const COMPLETED_STORAGE_KEY = "fitlog-completed";
 
-function getStoredPlan(): Workout[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
+function readStoredPlan(): Workout[] {
   try {
     const storedPlan = localStorage.getItem(PLAN_STORAGE_KEY);
 
@@ -55,19 +51,13 @@ function getStoredPlan(): Workout[] {
 
     const parsedPlan: unknown = JSON.parse(storedPlan);
 
-    return Array.isArray(parsedPlan)
-      ? (parsedPlan as Workout[])
-      : [];
+    return Array.isArray(parsedPlan) ? (parsedPlan as Workout[]) : [];
   } catch {
     return [];
   }
 }
 
-function getStoredSaved(): Workout[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
+function readStoredSaved(): Workout[] {
   try {
     const storedSaved = localStorage.getItem(SAVED_STORAGE_KEY);
 
@@ -77,23 +67,15 @@ function getStoredSaved(): Workout[] {
 
     const parsedSaved: unknown = JSON.parse(storedSaved);
 
-    return Array.isArray(parsedSaved)
-      ? (parsedSaved as Workout[])
-      : [];
+    return Array.isArray(parsedSaved) ? (parsedSaved as Workout[]) : [];
   } catch {
     return [];
   }
 }
 
-function getStoredCompleted(): number[] {
-  if (typeof window === "undefined") {
-    return [];
-  }
-
+function readStoredCompleted(): number[] {
   try {
-    const storedCompleted = localStorage.getItem(
-      COMPLETED_STORAGE_KEY
-    );
+    const storedCompleted = localStorage.getItem(COMPLETED_STORAGE_KEY);
 
     if (!storedCompleted) {
       return [];
@@ -114,28 +96,53 @@ function getStoredCompleted(): number[] {
 }
 
 export function FitLogProvider({ children }: FitLogProviderProps) {
-  const [plan, setPlan] = useState<Workout[]>(getStoredPlan);
-  const [saved, setSaved] = useState<Workout[]>(getStoredSaved);
-  const [completed, setCompleted] =
-    useState<number[]>(getStoredCompleted);
+  // Keep the first server and client render identical.
+  const [plan, setPlan] = useState<Workout[]>([]);
+  const [saved, setSaved] = useState<Workout[]>([]);
+  const [completed, setCompleted] = useState<number[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Keep localStorage synchronized with the current plan.
+  // Load localStorage after the initial render.
   useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setPlan(readStoredPlan());
+      setSaved(readStoredSaved());
+      setCompleted(readStoredCompleted());
+      setHydrated(true);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  // Save plan after localStorage has been loaded.
+  useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan));
-  }, [plan]);
+  }, [plan, hydrated]);
 
-  // Keep localStorage synchronized with saved workouts.
+  // Save saved workouts after localStorage has been loaded.
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(saved));
-  }, [saved]);
+  }, [saved, hydrated]);
 
-  // Keep localStorage synchronized with completed workouts.
+  // Save completed workouts after localStorage has been loaded.
   useEffect(() => {
+    if (!hydrated) {
+      return;
+    }
+
     localStorage.setItem(
       COMPLETED_STORAGE_KEY,
       JSON.stringify(completed)
     );
-  }, [completed]);
+  }, [completed, hydrated]);
 
   const addToPlan = useCallback((workout: Workout) => {
     let canAdd = true;
@@ -199,23 +206,17 @@ export function FitLogProvider({ children }: FitLogProviderProps) {
   }, []);
 
   const isCompleted = useCallback(
-    (id: number) => {
-      return completed.includes(id);
-    },
+    (id: number) => completed.includes(id),
     [completed]
   );
 
   const isInPlan = useCallback(
-    (id: number) => {
-      return plan.some((workout) => workout.id === id);
-    },
+    (id: number) => plan.some((workout) => workout.id === id),
     [plan]
   );
 
   const isSaved = useCallback(
-    (id: number) => {
-      return saved.some((workout) => workout.id === id);
-    },
+    (id: number) => saved.some((workout) => workout.id === id),
     [saved]
   );
 
@@ -259,7 +260,9 @@ export function useFitLog() {
   const context = useContext(FitLogContext);
 
   if (!context) {
-    throw new Error("useFitLog must be used inside FitLogProvider");
+    throw new Error(
+      "useFitLog must be used inside FitLogProvider"
+    );
   }
 
   return context;
