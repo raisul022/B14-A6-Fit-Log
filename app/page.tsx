@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "./components/Navbar";
-import WorkoutCard from "./components/WorkoutCard";
+import WorkoutLibrary from "./components/WorkoutLibrary";
 import { getWorkouts } from "./lib/api";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const workouts = await getWorkouts();
@@ -27,16 +29,17 @@ export default async function Home() {
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-7 text-muted sm:text-lg">
-              Explore focused workouts, build your daily plan, and keep every
-              session organized with FitLog.
+              FitLog is a dark, no-nonsense gym companion: pick a lift, lock
+              it into today&apos;s plan, and watch the week&apos;s work add up.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="#library"
-                className="rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-transform hover:scale-105"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-transform hover:scale-105"
               >
                 Browse Workouts
+                <span aria-hidden="true">→</span>
               </Link>
 
               <Link
@@ -63,26 +66,7 @@ export default async function Home() {
       </section>
 
       {/* Workout Library */}
-      <section
-        id="library"
-        className="mx-auto max-w-7xl px-6 py-16 sm:px-8 lg:px-12"
-      >
-        <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-            The Library
-          </p>
-
-          <h2 className="mt-3 text-3xl font-black uppercase tracking-tight text-foreground">
-            {workouts.length} Workouts
-          </h2>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {workouts.map((workout) => (
-            <WorkoutCard key={workout.id} workout={workout} />
-          ))}
-        </div>
-      </section>
+      <WorkoutLibrary workouts={workouts} />
     </main>
   );
 }

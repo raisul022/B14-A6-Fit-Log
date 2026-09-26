@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { Workout } from "../types/workout";
 import { useFitLog } from "../context/FitLogContext";
+import Toast from "./Toast";
 
 interface WorkoutActionsProps {
   workout: Workout;
@@ -19,6 +20,10 @@ export default function WorkoutActions({
   } = useFitLog();
 
   const [message, setMessage] = useState("");
+
+  const closeToast = useCallback(() => {
+    setMessage("");
+  }, []);
 
   const handleAddToPlan = () => {
     const added = addToPlan(workout);
@@ -43,34 +48,37 @@ export default function WorkoutActions({
   };
 
   return (
-    <div className="mt-8">
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleAddToPlan}
-          disabled={isInPlan(workout.id)}
-          className="rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {isInPlan(workout.id)
-            ? "Added to plan"
-            : "Add to today's plan"}
-        </button>
+    <>
+      <div className="mt-8">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={handleAddToPlan}
+            disabled={isInPlan(workout.id)}
+            className="rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+          >
+            {isInPlan(workout.id)
+              ? "Added to plan"
+              : "Add to today's plan"}
+          </button>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaved(workout.id)}
-          className="rounded-full border border-border px-6 py-3 text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {isSaved(workout.id) ? "Saved" : "Save for later"}
-        </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaved(workout.id)}
+            className="rounded-full border border-border px-6 py-3 text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSaved(workout.id) ? "Saved" : "Save for later"}
+          </button>
+        </div>
       </div>
 
       {message && (
-        <p className="mt-4 text-sm font-semibold text-accent">
-          {message}
-        </p>
+        <Toast
+          message={message}
+          onClose={closeToast}
+        />
       )}
-    </div>
+    </>
   );
 }
