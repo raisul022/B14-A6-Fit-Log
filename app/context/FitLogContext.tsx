@@ -6,6 +6,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
   type ReactNode,
 } from "react";
 import type { Workout } from "../types/workout";
@@ -36,10 +37,105 @@ interface FitLogProviderProps {
   children: ReactNode;
 }
 
+const PLAN_STORAGE_KEY = "fitlog-plan";
+const SAVED_STORAGE_KEY = "fitlog-saved";
+const COMPLETED_STORAGE_KEY = "fitlog-completed";
+
+function getStoredPlan(): Workout[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const storedPlan = localStorage.getItem(PLAN_STORAGE_KEY);
+
+    if (!storedPlan) {
+      return [];
+    }
+
+    const parsedPlan: unknown = JSON.parse(storedPlan);
+
+    return Array.isArray(parsedPlan)
+      ? (parsedPlan as Workout[])
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function getStoredSaved(): Workout[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const storedSaved = localStorage.getItem(SAVED_STORAGE_KEY);
+
+    if (!storedSaved) {
+      return [];
+    }
+
+    const parsedSaved: unknown = JSON.parse(storedSaved);
+
+    return Array.isArray(parsedSaved)
+      ? (parsedSaved as Workout[])
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function getStoredCompleted(): number[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const storedCompleted = localStorage.getItem(
+      COMPLETED_STORAGE_KEY
+    );
+
+    if (!storedCompleted) {
+      return [];
+    }
+
+    const parsedCompleted: unknown = JSON.parse(storedCompleted);
+
+    if (!Array.isArray(parsedCompleted)) {
+      return [];
+    }
+
+    return parsedCompleted.filter(
+      (id): id is number => typeof id === "number"
+    );
+  } catch {
+    return [];
+  }
+}
+
 export function FitLogProvider({ children }: FitLogProviderProps) {
-  const [plan, setPlan] = useState<Workout[]>([]);
-  const [saved, setSaved] = useState<Workout[]>([]);
-  const [completed, setCompleted] = useState<number[]>([]);
+  const [plan, setPlan] = useState<Workout[]>(getStoredPlan);
+  const [saved, setSaved] = useState<Workout[]>(getStoredSaved);
+  const [completed, setCompleted] =
+    useState<number[]>(getStoredCompleted);
+
+  // Keep localStorage synchronized with the current plan.
+  useEffect(() => {
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan));
+  }, [plan]);
+
+  // Keep localStorage synchronized with saved workouts.
+  useEffect(() => {
+    localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(saved));
+  }, [saved]);
+
+  // Keep localStorage synchronized with completed workouts.
+  useEffect(() => {
+    localStorage.setItem(
+      COMPLETED_STORAGE_KEY,
+      JSON.stringify(completed)
+    );
+  }, [completed]);
 
   const addToPlan = useCallback((workout: Workout) => {
     let canAdd = true;
@@ -66,7 +162,6 @@ export function FitLogProvider({ children }: FitLogProviderProps) {
       currentPlan.filter((workout) => workout.id !== id)
     );
 
-    // Also remove the completed state when the workout is removed.
     setCompleted((currentCompleted) =>
       currentCompleted.filter((workoutId) => workoutId !== id)
     );
