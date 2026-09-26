@@ -1,16 +1,57 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { Workout } from "../types/workout";
+import { useFitLog } from "../context/FitLogContext";
 
 interface PlanWorkoutCardProps {
   workout: Workout;
+  isSavedTab?: boolean;
 }
 
 export default function PlanWorkoutCard({
   workout,
+  isSavedTab = false,
 }: PlanWorkoutCardProps) {
+  const {
+    removeFromPlan,
+    removeSaved,
+    markAsDone,
+    isCompleted,
+  } = useFitLog();
+
+  const [message, setMessage] = useState("");
+
+  const completed = isCompleted(workout.id);
+
+  const handleMarkAsDone = () => {
+    if (completed) {
+      return;
+    }
+
+    markAsDone(workout.id);
+    setMessage("Workout marked as done.");
+  };
+
+  const handleRemove = () => {
+    if (isSavedTab) {
+      removeSaved(workout.id);
+      setMessage("Workout removed from saved.");
+      return;
+    }
+
+    removeFromPlan(workout.id);
+    setMessage("Workout removed from your plan.");
+  };
+
   return (
-    <article className="group overflow-hidden border border-border bg-surface">
+    <article
+      className={`group overflow-hidden border border-border bg-surface transition-opacity ${
+        completed ? "opacity-75" : ""
+      }`}
+    >
       {/* Workout Image */}
       <Link
         href={`/workouts/${workout.id}`}
@@ -22,8 +63,18 @@ export default function PlanWorkoutCard({
             alt={workout.name}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`object-cover transition-transform duration-500 group-hover:scale-105 ${
+              completed ? "grayscale" : ""
+            }`}
           />
+
+          {completed && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <span className="rounded-full bg-accent px-4 py-2 text-xs font-black uppercase tracking-[0.15em] text-black">
+                ✓ Completed
+              </span>
+            </div>
+          )}
         </div>
       </Link>
 
@@ -76,16 +127,43 @@ export default function PlanWorkoutCard({
           </div>
         </div>
 
-        {/* View Details */}
-        <div className="mt-6">
+        {/* Actions */}
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          {!isSavedTab && (
+            <button
+              type="button"
+              onClick={handleMarkAsDone}
+              disabled={completed}
+              className="rounded-full bg-accent px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-black transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+            >
+              {completed ? "✓ Completed" : "Mark as Done"}
+            </button>
+          )}
+
           <Link
             href={`/workouts/${workout.id}`}
-            className="inline-flex items-center text-xs font-black uppercase tracking-[0.15em] text-accent transition-opacity hover:opacity-70"
+            className="rounded-full border border-border px-5 py-2.5 text-xs font-black uppercase tracking-[0.12em] text-foreground transition-colors hover:bg-background"
           >
             View Details
-            <span className="ml-2 text-base">→</span>
           </Link>
+
+          <button
+            type="button"
+            onClick={handleRemove}
+            className="ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-border text-lg font-medium text-muted transition-colors hover:border-red-500 hover:text-red-400"
+            aria-label={`Remove ${workout.name}`}
+            title="Remove"
+          >
+            ×
+          </button>
         </div>
+
+        {/* Toast / Action Message */}
+        {message && (
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-accent">
+            {message}
+          </p>
+        )}
       </div>
     </article>
   );

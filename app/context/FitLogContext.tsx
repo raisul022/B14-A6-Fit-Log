@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useMemo,
   useState,
@@ -12,12 +13,16 @@ import type { Workout } from "../types/workout";
 interface FitLogContextValue {
   plan: Workout[];
   saved: Workout[];
+  completed: number[];
 
   addToPlan: (workout: Workout) => boolean;
   removeFromPlan: (id: number) => void;
 
   saveWorkout: (workout: Workout) => boolean;
   removeSaved: (id: number) => void;
+
+  markAsDone: (id: number) => void;
+  isCompleted: (id: number) => boolean;
 
   isInPlan: (id: number) => boolean;
   isSaved: (id: number) => boolean;
@@ -34,62 +39,118 @@ interface FitLogProviderProps {
 export function FitLogProvider({ children }: FitLogProviderProps) {
   const [plan, setPlan] = useState<Workout[]>([]);
   const [saved, setSaved] = useState<Workout[]>([]);
+  const [completed, setCompleted] = useState<number[]>([]);
 
-  const addToPlan = (workout: Workout) => {
-    if (plan.some((item) => item.id === workout.id)) {
-      return false;
-    }
+  const addToPlan = useCallback((workout: Workout) => {
+    let canAdd = true;
 
-    // Optional challenge: maximum 5 lifts in today's plan
-    if (plan.length >= 5) {
-      return false;
-    }
+    setPlan((currentPlan) => {
+      if (currentPlan.some((item) => item.id === workout.id)) {
+        canAdd = false;
+        return currentPlan;
+      }
 
-    setPlan((currentPlan) => [...currentPlan, workout]);
-    return true;
-  };
+      if (currentPlan.length >= 5) {
+        canAdd = false;
+        return currentPlan;
+      }
 
-  const removeFromPlan = (id: number) => {
+      return [...currentPlan, workout];
+    });
+
+    return canAdd;
+  }, []);
+
+  const removeFromPlan = useCallback((id: number) => {
     setPlan((currentPlan) =>
       currentPlan.filter((workout) => workout.id !== id)
     );
-  };
 
-  const saveWorkout = (workout: Workout) => {
-    if (saved.some((item) => item.id === workout.id)) {
-      return false;
-    }
+    // Also remove the completed state when the workout is removed.
+    setCompleted((currentCompleted) =>
+      currentCompleted.filter((workoutId) => workoutId !== id)
+    );
+  }, []);
 
-    setSaved((currentSaved) => [...currentSaved, workout]);
-    return true;
-  };
+  const saveWorkout = useCallback((workout: Workout) => {
+    let canSave = true;
 
-  const removeSaved = (id: number) => {
+    setSaved((currentSaved) => {
+      if (currentSaved.some((item) => item.id === workout.id)) {
+        canSave = false;
+        return currentSaved;
+      }
+
+      return [...currentSaved, workout];
+    });
+
+    return canSave;
+  }, []);
+
+  const removeSaved = useCallback((id: number) => {
     setSaved((currentSaved) =>
       currentSaved.filter((workout) => workout.id !== id)
     );
-  };
+  }, []);
 
-  const isInPlan = (id: number) => {
-    return plan.some((workout) => workout.id === id);
-  };
+  const markAsDone = useCallback((id: number) => {
+    setCompleted((currentCompleted) => {
+      if (currentCompleted.includes(id)) {
+        return currentCompleted;
+      }
 
-  const isSaved = (id: number) => {
-    return saved.some((workout) => workout.id === id);
-  };
+      return [...currentCompleted, id];
+    });
+  }, []);
+
+  const isCompleted = useCallback(
+    (id: number) => {
+      return completed.includes(id);
+    },
+    [completed]
+  );
+
+  const isInPlan = useCallback(
+    (id: number) => {
+      return plan.some((workout) => workout.id === id);
+    },
+    [plan]
+  );
+
+  const isSaved = useCallback(
+    (id: number) => {
+      return saved.some((workout) => workout.id === id);
+    },
+    [saved]
+  );
 
   const value = useMemo(
     () => ({
       plan,
       saved,
+      completed,
       addToPlan,
       removeFromPlan,
       saveWorkout,
       removeSaved,
+      markAsDone,
+      isCompleted,
       isInPlan,
       isSaved,
     }),
-    [plan, saved]
+    [
+      plan,
+      saved,
+      completed,
+      addToPlan,
+      removeFromPlan,
+      saveWorkout,
+      removeSaved,
+      markAsDone,
+      isCompleted,
+      isInPlan,
+      isSaved,
+    ]
   );
 
   return (

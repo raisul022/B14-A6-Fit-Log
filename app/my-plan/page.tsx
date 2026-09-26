@@ -137,6 +137,7 @@ export default function MyPlanPage() {
                 <PlanWorkoutCard
                   key={workout.id}
                   workout={workout}
+                  isSavedTab={activeTab === "saved"}
                 />
               ))}
             </div>
