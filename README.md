@@ -8,8 +8,12 @@ The application is designed with a dark, focused gym aesthetic and provides a re
 
 ## 🚀 Live Project
 
-* **Live Link:** Add your Vercel deployment link here
-* **GitHub Repository:** https://github.com/raisul022/B14-A6-Fit-Log
+Live Link:
+https://b14-a6-fit-log-bay.vercel.app
+
+GitHub Repository:
+https://github.com/raisul022/B14-A6-Fit-Log
+
 
 ---
 
@@ -341,8 +345,8 @@ The deployed application should also be tested for:
 
 **Raisul Islam Rifat**
 
-**GitHub:**
-https://github.com/raisul022/B14-A6-Fit-Log
+Live Link:
+https://b14-a6-fit-log-bay.vercel.app
 
-**Live Link:**
-Add your Vercel deployment link here
+GitHub Repository:
+https://github.com/raisul022/B14-A6-Fit-Log
