@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getWorkoutById } from "../../lib/api";
+import WorkoutActions from "../../components/WorkoutActions";
 
 interface WorkoutDetailsPageProps {
   params: Promise<{
@@ -131,22 +132,8 @@ export default async function WorkoutDetailsPage({
               <span className="text-sm text-muted">Rating</span>
             </div>
 
-            {/* Actions - temporary */}
-            <div className="mt-8 flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="rounded-full bg-accent px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-transform hover:scale-105"
-              >
-                Add to today&apos;s plan
-              </button>
-
-              <button
-                type="button"
-                className="rounded-full border border-border px-6 py-3 text-sm font-bold uppercase tracking-wide text-foreground transition-colors hover:bg-surface"
-              >
-                Save for later
-              </button>
-            </div>
+            {/* Actions */}
+            <WorkoutActions workout={workout} />
           </div>
         </div>
 

@@ -4,30 +4,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useFitLog } from "../context/FitLogContext";
 
 const navLinks = [
-  {
-    label: "Workout",
-    href: "/",
-  },
-  {
-    label: "My Plan",
-    href: "/my-plan",
-  },
+  { label: "Workout", href: "/" },
+  { label: "My Plan", href: "/my-plan" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const planCount = 0;
-  const savedCount = 0;
+  const { plan, saved } = useFitLog();
+
+  const planCount = plan.length;
+  const savedCount = saved.length;
 
   return (
     <header className="border-b border-border bg-background">
       <nav className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <div className="flex min-h-20 items-center justify-between gap-4">
-          {/* Logo */}
           <Link
             href="/"
             className="flex shrink-0 items-center gap-3"
@@ -47,7 +43,6 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden items-center gap-2 md:flex">
             {navLinks.map((link) => {
               const isActive =
@@ -71,7 +66,6 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Counters + Mobile Menu */}
           <div className="flex items-center gap-2">
             <Link
               href="/my-plan"
@@ -87,12 +81,13 @@ export default function Navbar() {
               Saved <span className="ml-1">{savedCount}</span>
             </Link>
 
-            {/* Mobile menu button */}
             <button
               type="button"
               onClick={() => setMenuOpen(!menuOpen)}
               className="ml-1 flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-surface md:hidden"
-              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-label={
+                menuOpen ? "Close navigation menu" : "Open navigation menu"
+              }
               aria-expanded={menuOpen}
             >
               <span className="sr-only">
@@ -105,11 +100,13 @@ export default function Navbar() {
                     menuOpen ? "translate-y-1" : ""
                   }`}
                 />
+
                 <span
                   className={`block h-0.5 w-4 bg-current transition-opacity ${
                     menuOpen ? "opacity-0" : ""
                   }`}
                 />
+
                 <span
                   className={`block h-0.5 w-4 bg-current transition-transform ${
                     menuOpen ? "-translate-y-1" : ""
@@ -120,7 +117,6 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {menuOpen && (
           <div className="border-t border-border py-4 md:hidden">
             <div className="flex flex-col gap-2">
