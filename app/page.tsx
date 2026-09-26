@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Navbar from "./components/Navbar";
+import WorkoutCard from "./components/WorkoutCard";
 import { getWorkouts } from "./lib/api";
 
 export default async function Home() {
@@ -61,25 +62,10 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {workouts.map((workout) => (
-            <div
-              key={workout.id}
-              className="rounded-2xl border border-border bg-surface p-5"
-            >
-              <h3 className="font-bold text-foreground">
-                {workout.name}
-              </h3>
-
-              <p className="mt-2 text-sm text-muted">
-                {workout.equipment}
-              </p>
-
-              <p className="mt-4 text-sm text-muted">
-                {workout.duration} min · {workout.caloriesBurned} kcal
-              </p>
-            </div>
-          ))}
-        </div>
+  {workouts.map((workout) => (
+    <WorkoutCard key={workout.id} workout={workout} />
+  ))}
+</div>
       </section>
     </main>
   );
